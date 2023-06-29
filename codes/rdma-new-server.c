@@ -201,15 +201,7 @@ void on_completion(struct ibv_wc *wc)
 
     memcpy(conn_->send_region, conn->recv_region, BUFFER_SIZE);
     ++conn_->send_region[0];
-    printf("[DEBUG]Before the first send_message(conn_)\n");
-    fflush(stdout);
     send_message(conn_);
-    
-    ++conn_->send_region[0];
-    printf("[DEBUG]Before the second send_message(conn_)\n");
-    fflush(stdout);
-    send_message(conn_);
-    
 
   } else if (wc->opcode == IBV_WC_SEND) {
     printf("send completed successfully.\n");
@@ -231,13 +223,7 @@ void send_message(struct connection *conn) {
     sge.length = BUFFER_SIZE;
     sge.lkey = conn->send_mr->lkey;
 
-    printf("[DEBUG]before added ibv_post_send\n");
-    fflush(stdout);
-
     ibv_post_send(conn->qp, &wr, &bad_wr);
-
-    printf("[DEBUG]after added ibv_post_send\n");
-    fflush(stdout);
 }
 
 

@@ -50,6 +50,7 @@ static int on_route_resolved(struct rdma_cm_id *id);
 static void get_message(char *buffer);
 
 static struct context *s_ctx = NULL;
+char *mess = NULL;
 
 int main(int argc, char **argv)
 {
@@ -60,11 +61,12 @@ int main(int argc, char **argv)
 
     int ret = 0;
 
-    if (argc != 3) {
-        fprintf(stderr, "usage: client <server-address> <server-port> <value>");
+    if (argc != 4) {
+        fprintf(stderr, "usage: client <server-address> <server-port> <data>");
         ret = 1;
         goto destroy_resources;
     }
+    mess = argv[3];
 
     ret = getaddrinfo(argv[1], argv[2], NULL, &addr);
     if (ret) {
@@ -244,26 +246,6 @@ void on_completion(struct ibv_wc *wc)
     printf("received message: %s\n", conn->recv_region);
   else if (wc->opcode == IBV_WC_SEND) {
     printf("send completed successfully.\n");
-    
-    while (!s_ctx)
-      ;
-    
-    struct connection *conn_ = (struct connection *)s_ctx;
-
-    struct ibv_recv_wr wr, *bad_wr = NULL;
-    struct ibv_sge sge;
-
-    wr.wr_id = (uintptr_t)conn_;
-    wr.next = NULL;
-    wr.sg_list = &sge;
-    wr.num_sge = 1;
-
-    sge.addr = (uintptr_t)conn->recv_region;
-    sge.length = BUFFER_SIZE;
-    sge.lkey = conn->recv_mr->lkey;
-
-    TEST_NZ(ibv_post_recv(conn->qp, &wr, &bad_wr));
-
   }
   else
     die("on_completion: completion isn't a send or a receive.");
@@ -273,8 +255,7 @@ void on_completion(struct ibv_wc *wc)
 }
 
 void get_message(char *buffer) {
-  // callback
-  buffer[0] = '1';
+  return mess;
 }
 
 
